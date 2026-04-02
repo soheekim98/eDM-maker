@@ -15,7 +15,21 @@ export default function ImageUploader() {
         const dataUrl = e.target?.result as string;
         const img = new Image();
         img.onload = () => {
-          setSourceImage(dataUrl, img.naturalWidth, img.naturalHeight);
+          const TARGET_WIDTH = 800;
+          if (img.naturalWidth === TARGET_WIDTH) {
+            setSourceImage(dataUrl, img.naturalWidth, img.naturalHeight);
+          } else {
+            // 가로 800px로 리사이즈
+            const ratio = TARGET_WIDTH / img.naturalWidth;
+            const newHeight = Math.round(img.naturalHeight * ratio);
+            const canvas = document.createElement("canvas");
+            canvas.width = TARGET_WIDTH;
+            canvas.height = newHeight;
+            const ctx = canvas.getContext("2d")!;
+            ctx.drawImage(img, 0, 0, TARGET_WIDTH, newHeight);
+            const resizedDataUrl = canvas.toDataURL("image/png");
+            setSourceImage(resizedDataUrl, TARGET_WIDTH, newHeight);
+          }
         };
         img.src = dataUrl;
       };

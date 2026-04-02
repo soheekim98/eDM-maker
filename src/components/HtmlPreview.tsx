@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useEdmStore, getImagePrefix, getIndexFilename } from "@/hooks/useEdmStore";
-import { generateHtml } from "@/lib/generateHtml";
+import { generateHtml, extractBodyContent } from "@/lib/generateHtml";
 import { copyToClipboard, downloadHtml } from "@/lib/downloadUtils";
 
 export default function HtmlPreview() {
@@ -26,8 +26,10 @@ export default function HtmlPreview() {
     [edmTitle, baseUrl, imageHeight, sliceLines, clickAreas, imagePrefix]
   );
 
+  const bodyContent = useMemo(() => extractBodyContent(html), [html]);
+
   const handleCopy = async () => {
-    await copyToClipboard(html);
+    await copyToClipboard(bodyContent);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };

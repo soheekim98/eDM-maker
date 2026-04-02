@@ -57,18 +57,7 @@ export function generateHtml({
     mapTags.push(`</map>`);
   });
 
-  return `<!DOCTYPE html>
-<html lang="ko">
-<head>
-\t<meta charset="utf-8" />
-\t<meta
-\t\tname="viewport"
-\t\tcontent="width=device-width, initial-scale=1, user-scalable=no, maximum-scale=1, minimum-scale=1"
-\t/>
-</head>
-
-<body style="padding: 0; margin: 0">
-<title>${edmTitle}</title>
+  const bodyContent = `<title>${edmTitle}</title>
 <table border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto">
  <tbody>
  <tr>
@@ -79,8 +68,38 @@ ${imgTags.join("\n")}
 </tbody>
 </table>
 
-${mapTags.join("\n")}
+${mapTags.join("\n")}`;
+
+  const fullHtml = `<!DOCTYPE html>
+<html lang="ko">
+<head>
+\t<meta charset="utf-8" />
+\t<meta
+\t\tname="viewport"
+\t\tcontent="width=device-width, initial-scale=1, user-scalable=no, maximum-scale=1, minimum-scale=1"
+\t/>
+</head>
+
+<body style="padding: 0; margin: 0">
+${bodyContent}
 </body>
 </html>
 `;
+
+  return fullHtml;
+}
+
+export function extractBodyContent(html: string): string {
+  const startTag = "<title>";
+  const endTag = "</map>";
+  const start = html.indexOf(startTag);
+  const end = html.lastIndexOf(endTag);
+  if (start === -1) return html;
+  if (end === -1) {
+    // map 태그가 없는 경우 </table> 까지
+    const tableEnd = html.lastIndexOf("</table>");
+    if (tableEnd === -1) return html;
+    return html.substring(start, tableEnd + "</table>".length);
+  }
+  return html.substring(start, end + endTag.length);
 }

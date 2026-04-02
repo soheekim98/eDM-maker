@@ -32,7 +32,7 @@ export default function AreaMapper() {
       <h3 className="font-semibold text-gray-700">
         클릭 영역 매핑{" "}
         <span className="text-sm font-normal text-gray-400">
-          (각 슬라이스에서 드래그하여 영역 추가)
+          (드래그로 영역 추가, 영역을 드래그하여 이동)
         </span>
       </h3>
 
@@ -89,11 +89,20 @@ function SliceAreaEditor({
   onRemoveArea,
 }: SliceAreaEditorProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Drawing new rect
   const [drawing, setDrawing] = useState<{
     startX: number;
     startY: number;
     currentX: number;
     currentY: number;
+  } | null>(null);
+
+  // Dragging existing rect
+  const [dragging, setDragging] = useState<{
+    areaId: string;
+    offsetX: number;
+    offsetY: number;
   } | null>(null);
 
   const maxDisplayWidth = 800;
@@ -115,31 +124,63 @@ function SliceAreaEditor({
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
-      if ((e.target as HTMLElement).closest("[data-area-rect]")) return;
+      const areaEl = (e.target as HTMLElement).closest("[data-area-id]");
       const coords = getLocalCoords(e.clientX, e.clientY);
-      (e.target as HTMLElement).setPointerCapture(e.pointerId);
-      setDrawing({
-        startX: coords.x,
-        startY: coords.y,
-        currentX: coords.x,
-        currentY: coords.y,
-      });
+
+      if (areaEl) {
+        // Start dragging existing area
+        const areaId = areaEl.getAttribute("data-area-id")!;
+        const area = areas.find((a) => a.id === areaId);
+        if (area) {
+          e.preventDefault();
+          (e.target as HTMLElement).setPointerCapture(e.pointerId);
+          setDragging({
+            areaId,
+            offsetX: coords.x - area.x,
+            offsetY: coords.y - area.y,
+          });
+        }
+      } else {
+        // Start drawing new area
+        (e.target as HTMLElement).setPointerCapture(e.pointerId);
+        setDrawing({
+          startX: coords.x,
+          startY: coords.y,
+          currentX: coords.x,
+          currentY: coords.y,
+        });
+      }
     },
-    [getLocalCoords]
+    [getLocalCoords, areas]
   );
 
   const handlePointerMove = useCallback(
     (e: React.PointerEvent) => {
-      if (!drawing) return;
       const coords = getLocalCoords(e.clientX, e.clientY);
-      setDrawing((prev) =>
-        prev ? { ...prev, currentX: coords.x, currentY: coords.y } : null
-      );
+
+      if (dragging) {
+        const area = areas.find((a) => a.id === dragging.areaId);
+        if (!area) return;
+        let newX = coords.x - dragging.offsetX;
+        let newY = coords.y - dragging.offsetY;
+        // Clamp within slice bounds
+        newX = Math.max(0, Math.min(newX, imageWidth - area.width));
+        newY = Math.max(0, Math.min(newY, sliceHeight - area.height));
+        onUpdateArea(dragging.areaId, { x: newX, y: newY });
+      } else if (drawing) {
+        setDrawing((prev) =>
+          prev ? { ...prev, currentX: coords.x, currentY: coords.y } : null
+        );
+      }
     },
-    [drawing, getLocalCoords]
+    [dragging, drawing, getLocalCoords, areas, imageWidth, sliceHeight, onUpdateArea]
   );
 
   const handlePointerUp = useCallback(() => {
+    if (dragging) {
+      setDragging(null);
+      return;
+    }
     if (!drawing) return;
     const x = Math.min(drawing.startX, drawing.currentX);
     const y = Math.min(drawing.startY, drawing.currentY);
@@ -158,7 +199,7 @@ function SliceAreaEditor({
       });
     }
     setDrawing(null);
-  }, [drawing, sliceIndex, onAddArea]);
+  }, [dragging, drawing, sliceIndex, onAddArea]);
 
   const drawRect = drawing
     ? {
@@ -207,12 +248,14 @@ function SliceAreaEditor({
           />
         </div>
 
-        {/* Existing areas */}
+        {/* Existing areas - draggable */}
         {areas.map((area) => (
           <div
             key={area.id}
-            data-area-rect
-            className="absolute border-2 border-blue-500 bg-blue-500/20 hover:bg-blue-500/30 transition-colors pointer-events-none"
+            data-area-id={area.id}
+            className={`absolute border-2 border-blue-500 bg-blue-500/20 cursor-move hover:bg-blue-500/30 transition-colors ${
+              dragging?.areaId === area.id ? "ring-2 ring-blue-400" : ""
+            }`}
             style={{
               left: area.x * scaleFactor,
               top: area.y * scaleFactor,
@@ -220,7 +263,7 @@ function SliceAreaEditor({
               height: area.height * scaleFactor,
             }}
           >
-            <span className="absolute top-0 left-0 bg-blue-600 text-white text-[10px] px-1 leading-4 truncate max-w-full">
+            <span className="absolute top-0 left-0 bg-blue-600 text-white text-[10px] px-1 leading-4 truncate max-w-full pointer-events-none">
               {area.alt || area.href || "미설정"}
             </span>
           </div>

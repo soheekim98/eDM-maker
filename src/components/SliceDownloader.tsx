@@ -3,10 +3,7 @@
 import { useState, useCallback } from "react";
 import { useEdmStore, getImagePrefix } from "@/hooks/useEdmStore";
 import { sliceImage } from "@/lib/sliceImage";
-import {
-  downloadSlicesAsZip,
-  downloadSingleSlice,
-} from "@/lib/downloadUtils";
+import { downloadSlicesAsZip } from "@/lib/downloadUtils";
 
 export default function SliceDownloader() {
   const { sourceImageDataUrl, imageWidth, imageHeight, sliceLines, edmOrder } =
@@ -28,7 +25,7 @@ export default function SliceDownloader() {
         sliceLines.map((l) => l.y)
       );
       setSliceBlobs(blobs);
-      setSelected(new Set(blobs.map((_, i) => i))); // 전체 선택
+      setSelected(new Set(blobs.map((_, i) => i)));
     } finally {
       setSlicing(false);
     }
@@ -55,18 +52,33 @@ export default function SliceDownloader() {
     }
   };
 
-  const downloadSelected = () => {
+  const downloadToFolder = async () => {
     const indices = Array.from(selected).sort((a, b) => a - b);
-    indices.forEach((i) => {
-      setTimeout(() => downloadSingleSlice(sliceBlobs[i], i, prefix), i * 200);
-    });
+    if (indices.length === 0) return;
+
+    try {
+      // 폴더 선택 다이얼로그
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const dirHandle = await (window as any).showDirectoryPicker();
+      for (const i of indices) {
+        const fileHandle = await dirHandle.getFileHandle(getFilename(i), { create: true });
+        const writable = await fileHandle.createWritable();
+        await writable.write(sliceBlobs[i]);
+        await writable.close();
+      }
+      alert(`${indices.length}개 파일 저장 완료`);
+    } catch (e: unknown) {
+      // 사용자가 취소한 경우 무시
+      if (e instanceof DOMException && e.name === "AbortError") return;
+      throw e;
+    }
   };
 
   const downloadSelectedAsZip = () => {
     const indices = Array.from(selected).sort((a, b) => a - b);
     const blobs = indices.map((i) => sliceBlobs[i]);
-    const prefixes = indices.map((i) => `${prefix}${i + 1}`);
-    downloadSlicesAsZip(blobs, prefix, prefixes);
+    const names = indices.map((i) => `${prefix}${i + 1}`);
+    downloadSlicesAsZip(blobs, prefix, names);
   };
 
   return (
@@ -95,18 +107,18 @@ export default function SliceDownloader() {
               {selected.size === sliceBlobs.length ? "전체 해제" : "전체 선택"}
             </button>
             <button
-              onClick={downloadSelected}
+              onClick={downloadToFolder}
               disabled={selected.size === 0}
               className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
             >
-              선택 다운로드
+              폴더에 저장
             </button>
             <button
               onClick={downloadSelectedAsZip}
               disabled={selected.size === 0}
               className="px-3 py-1 text-sm bg-indigo-500 text-white rounded hover:bg-indigo-600 disabled:opacity-50"
             >
-              선택 ZIP 다운로드
+              ZIP 다운로드
             </button>
           </div>
 
@@ -136,15 +148,6 @@ export default function SliceDownloader() {
                 <span className="text-sm text-gray-600 flex-1">
                   {getFilename(i)} ({Math.round(blob.size / 1024)}KB)
                 </span>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    downloadSingleSlice(blob, i, prefix);
-                  }}
-                  className="px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
-                >
-                  다운로드
-                </button>
               </div>
             ))}
           </div>

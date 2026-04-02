@@ -67,7 +67,6 @@ ${imgTags.join("\n")}
 \t</tr>
 </tbody>
 </table>
-
 ${mapTags.join("\n")}`;
 
   const fullHtml = `<!DOCTYPE html>

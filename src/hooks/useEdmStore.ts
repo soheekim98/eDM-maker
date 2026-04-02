@@ -201,4 +201,9 @@ export function getIndexFilename(order: number): string {
   return `index${order}.html`;
 }
 
+// "https://www.ksia.or.kr/edm/20260402/images/" → "https://www.ksia.or.kr/edm/20260402/index.html"
+export function getEdmPageUrl(baseUrl: string, indexFilename: string): string {
+  return baseUrl.replace(/images\/$/, indexFilename);
+}
+
 export { ORGS };

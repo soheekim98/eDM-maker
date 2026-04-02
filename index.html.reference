@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+	<meta charset="utf-8" />
+	<meta
+		name="viewport"
+		content="width=device-width, initial-scale=1, user-scalable=no, maximum-scale=1, minimum-scale=1"
+	/>
+</head>
+
+<body style="padding: 0; margin: 0">
+<title>2026년도 반도체 유공자 포상</title>
+<table border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto">
+ <tbody>
+ <tr>
+	<td style="display: flex;flex-direction: column;align-items: center;width: 100%;">
+	 <img style="display: block" src="https://www.ksia.or.kr/edm/20260330/images/1.png" border="0"/>
+	 <img style="display: block" src="https://www.ksia.or.kr/edm/20260330/images/2.png" border="0"/>
+	 <img style="display: block" src="https://www.ksia.or.kr/edm/20260330/images/3.png" border="0" usemap="#image-map"/>
+	 </td>
+	</tr>
+</tbody>
+</table>
+
+<map name="image-map">
+	<area target="_blank" alt="정부포상 업무지침" title="정부포상 업무지침" href="https://www.ksia.or.kr/edm/20260330/1. 2026년도+정부포상+업무지침.hwp" coords="39,66,213,158" shape="rect">
+	<area target="_blank" alt="공고문" title="공고문" href="https://www.ksia.or.kr/edm/20260330/2. 2026년도 반도체산업발전 유공 공고문.hwpx" coords="226,69,393,158" shape="rect">
+	<area target="_blank" alt="포상신청양식" title="포상신청양식" href="https://www.ksia.or.kr/edm/20260330/3. 2026 포상신청양식_한글.hwpx" coords="406,72,576,159" shape="rect">
+	<area target="_blank" alt="포상신청양식" title="포상신청양식" href="https://www.ksia.or.kr/edm/20260330/4. 2026 포상신청양식_워드.docx" coords="588,71,763,156" shape="rect">
+</map>
+</body>
+</html>
+

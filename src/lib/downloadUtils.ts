@@ -10,10 +10,11 @@ export function downloadHtml(html: string, filename: string = "index.html") {
   saveAs(blob, filename);
 }
 
-export async function downloadSlicesAsZip(blobs: Blob[], prefix: string = "") {
+export async function downloadSlicesAsZip(blobs: Blob[], prefix: string = "", names?: string[]) {
   const zip = new JSZip();
   blobs.forEach((blob, i) => {
-    zip.file(`${prefix}${i + 1}.png`, blob);
+    const filename = names ? `${names[i]}.png` : `${prefix}${i + 1}.png`;
+    zip.file(filename, blob);
   });
   const content = await zip.generateAsync({ type: "blob" });
   saveAs(content, "edm_images.zip");

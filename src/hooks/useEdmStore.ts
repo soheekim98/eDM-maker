@@ -39,6 +39,7 @@ interface EdmState {
 }
 
 const ORGS: Record<string, string> = {
+  디스플레이메일서버: "https://web.kdia.org/",
   디스플레이산업협회: "https://www.kdia.org/",
   반도체산업협회: "https://www.ksia.or.kr/",
 };

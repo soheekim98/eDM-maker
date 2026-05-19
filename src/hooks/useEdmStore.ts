@@ -58,6 +58,13 @@ function buildBaseUrl(org: string, date: string) {
   return `${orgUrl}edm/${date}/images/`;
 }
 
+function uid(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return uid();
+  }
+  return `id-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
 let areaIdCounter = 0;
 
 export const useEdmStore = create<EdmState>((set) => ({
@@ -88,13 +95,11 @@ export const useEdmStore = create<EdmState>((set) => ({
       imageHeight: 0,
       sliceLines: [],
       clickAreas: [],
-      baseUrl: "",
-      edmTitle: "",
     }),
 
   addSliceLine: (y) =>
     set((state) => ({
-      sliceLines: [...state.sliceLines, { id: crypto.randomUUID(), y }].sort(
+      sliceLines: [...state.sliceLines, { id: uid(), y }].sort(
         (a, b) => a.y - b.y
       ),
     })),
@@ -104,7 +109,7 @@ export const useEdmStore = create<EdmState>((set) => ({
       if (state.imageHeight <= 800) return state;
       const lines: SliceLine[] = [];
       for (let y = 800; y < state.imageHeight; y += 800) {
-        lines.push({ id: crypto.randomUUID(), y });
+        lines.push({ id: uid(), y });
       }
       return { sliceLines: lines, clickAreas: [] };
     }),

@@ -3,6 +3,47 @@
 import { useCallback } from "react";
 import { useEdmStore } from "@/hooks/useEdmStore";
 
+const TARGET_WIDTH = 800;
+
+function downscaleToWidth(
+  img: HTMLImageElement,
+  targetWidth: number
+): HTMLCanvasElement {
+  const ratio = targetWidth / img.naturalWidth;
+  const targetHeight = Math.round(img.naturalHeight * ratio);
+
+  // Multi-step downscale (halve each pass) to preserve detail when the
+  // source is much larger than the target. Browsers' single-pass downscale
+  // can lose sharpness for 3x+ ratios.
+  let srcCanvas: HTMLCanvasElement | HTMLImageElement = img;
+  let curW = img.naturalWidth;
+  let curH = img.naturalHeight;
+
+  while (curW * 0.5 > targetWidth) {
+    const nextW = Math.max(targetWidth, Math.floor(curW * 0.5));
+    const nextH = Math.max(1, Math.floor((nextW / curW) * curH));
+    const tmp = document.createElement("canvas");
+    tmp.width = nextW;
+    tmp.height = nextH;
+    const ctx = tmp.getContext("2d")!;
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(srcCanvas, 0, 0, nextW, nextH);
+    srcCanvas = tmp;
+    curW = nextW;
+    curH = nextH;
+  }
+
+  const final = document.createElement("canvas");
+  final.width = targetWidth;
+  final.height = targetHeight;
+  const ctx = final.getContext("2d")!;
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(srcCanvas, 0, 0, targetWidth, targetHeight);
+  return final;
+}
+
 export default function ImageUploader() {
   const { sourceImageDataUrl, imageWidth, imageHeight, setSourceImage, resetAll } =
     useEdmStore();
@@ -15,21 +56,13 @@ export default function ImageUploader() {
         const dataUrl = e.target?.result as string;
         const img = new Image();
         img.onload = () => {
-          const TARGET_WIDTH = 800;
           if (img.naturalWidth === TARGET_WIDTH) {
             setSourceImage(dataUrl, img.naturalWidth, img.naturalHeight);
-          } else {
-            // 가로 800px로 리사이즈
-            const ratio = TARGET_WIDTH / img.naturalWidth;
-            const newHeight = Math.round(img.naturalHeight * ratio);
-            const canvas = document.createElement("canvas");
-            canvas.width = TARGET_WIDTH;
-            canvas.height = newHeight;
-            const ctx = canvas.getContext("2d")!;
-            ctx.drawImage(img, 0, 0, TARGET_WIDTH, newHeight);
-            const resizedDataUrl = canvas.toDataURL("image/png");
-            setSourceImage(resizedDataUrl, TARGET_WIDTH, newHeight);
+            return;
           }
+          const canvas = downscaleToWidth(img, TARGET_WIDTH);
+          const resizedDataUrl = canvas.toDataURL("image/png");
+          setSourceImage(resizedDataUrl, canvas.width, canvas.height);
         };
         img.src = dataUrl;
       };

@@ -60,7 +60,7 @@ function buildBaseUrl(org: string, date: string) {
 
 function uid(): string {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
-    return uid();
+    return crypto.randomUUID();
   }
   return `id-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }

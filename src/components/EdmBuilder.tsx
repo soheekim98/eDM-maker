@@ -12,19 +12,11 @@ export default function EdmBuilder() {
   const { sourceImageDataUrl } = useEdmStore();
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-5xl mx-auto px-4 py-3">
-          <h1 className="text-xl font-bold text-gray-800">eDM 빌더</h1>
-          <p className="text-sm text-gray-500">
-            설정 → 이미지 업로드 → 슬라이스 → 클릭 영역 매핑 → HTML 생성
-          </p>
-        </div>
-      </header>
-
-      {/* Main content */}
+    <div className="flex-1 bg-gray-50">
       <main className="max-w-5xl mx-auto px-4 py-6 space-y-6">
+        <div className="text-sm text-gray-500">
+          설정 → 이미지 업로드 → 슬라이스 → 클릭 영역 매핑 → HTML 생성
+        </div>
         {/* Step 1: Settings */}
         <section className="bg-white rounded-lg border border-gray-200 p-4">
           <h2 className="text-lg font-semibold text-gray-800 mb-3">
